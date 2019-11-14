@@ -26,6 +26,7 @@ class nhudak3_FarcicalAquaticCeremony(TradingAgent):
         self.mid_list, self.avg_win1_list, self.avg_win2_list = [], [], []
         self.log_orders = log_orders
         self.state = "AWAITING_WAKEUP"
+        self.agent_dir = get_file(self.__class__.__name__)
         # self.window1 = 100
         # self.window2 = 5
 
@@ -62,10 +63,12 @@ class nhudak3_FarcicalAquaticCeremony(TradingAgent):
                 bid, _, ask, _ = self.getKnownBidAsk(self.symbol)
                 if bid and ask:
                     self.mid_list.append((bid + ask) / 2)
-                    if len(self.mid_list) > self.window1: self.avg_win1_list.append(
-                        pd.Series(self.mid_list).ewm(span=self.window1).mean().values[-1].round(2))
-                    if len(self.mid_list) > self.window2: self.avg_win2_list.append(
-                        pd.Series(self.mid_list).ewm(span=self.window2).mean().values[-1].round(2))
+                    if len(self.mid_list) > self.window1:
+                        ewm1 = pd.Series(self.mid_list).ewm(span=self.window1).mean().values[-1].round(2)
+                        self.avg_win1_list.append(ewm1)
+                    if len(self.mid_list) > self.window2:
+                        ewm2 = pd.Series(self.mid_list).ewm(span=self.window2).mean().values[-1].round(2)
+                        self.avg_win2_list.append(ewm2)
                     if len(self.avg_win1_list) > 0 and len(self.avg_win2_list) > 0 and len(self.orders) == 0:
                         if self.avg_win1_list[-1] >= self.avg_win2_list[-1]:
                             # Check that we have enough cash to place the order
